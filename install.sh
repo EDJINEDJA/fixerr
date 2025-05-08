@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 set -e  # Exit immediately if any command fails
 
 # Configuration
-REPO_OWNER="EDJINEDJA"
+REPO_OWNER="OBLO"
 REPO_NAME="fixerr"
 BRANCH="main"
 RAW_URL="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}"
@@ -11,15 +11,21 @@ INSTALL_DIR="/usr/local/bin"
 LIB_DIR="/usr/local/lib/fixerr"
 DEFAULT_MODEL="phi"  # Default LLM model to use
 
-# Color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'  # No Color
+# Color codes (fallback to no color if output is not a terminal)
+RED=''
+GREEN=''
+YELLOW=''
+NC=''
+if [ -t 1 ]; then  # Check if output is a terminal
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    NC='\033[0m'  # No Color
+fi
 
 # Cleanup function
 cleanup() {
-    if [[ -d "${TMP_DIR}" ]]; then
+    if [ -d "${TMP_DIR}" ]; then
         rm -rf "${TMP_DIR}" || echo "Warning: Failed to clean up temp directory"
     fi
 }
@@ -27,7 +33,7 @@ trap cleanup EXIT INT TERM
 
 # Error handling
 fail() {
-    echo -e "${RED}Error: $1${NC}" >&2
+    echo "${RED}Error: $1${NC}" >&2
     exit 1
 }
 
@@ -40,7 +46,7 @@ check_url() {
 
 # Check system requirements
 check_requirements() {
-    echo -e "${YELLOW}Checking system requirements...${NC}"
+    echo "${YELLOW}Checking system requirements...${NC}"
     
     # Verify curl
     if ! command -v curl >/dev/null 2>&1; then
@@ -56,13 +62,13 @@ check_requirements() {
 # Install Ollama
 install_ollama() {
     if ! command -v ollama >/dev/null 2>&1; then
-        echo -e "${YELLOW}Installing Ollama...${NC}"
+        echo "${YELLOW}Installing Ollama...${NC}"
         curl -fsSL https://ollama.com/install.sh | sh || fail "Failed to install Ollama"
         
         # Add user to ollama group
         if ! groups | grep -q ollama; then
             sudo usermod -aG ollama "$(whoami)" && \
-            echo -e "${YELLOW}You may need to log out and back in for Ollama permissions${NC}"
+            echo "${YELLOW}You may need to log out and back in for Ollama permissions${NC}"
         fi
     fi
 }
@@ -70,32 +76,32 @@ install_ollama() {
 # Install Python
 install_python() {
     if ! command -v python3 >/dev/null 2>&1; then
-        echo -e "${YELLOW}Installing Python...${NC}"
+        echo "${YELLOW}Installing Python...${NC}"
         
-        if [[ -f /etc/debian_version ]]; then
+        if [ -f /etc/debian_version ]; then
             sudo apt-get update && sudo apt-get install -y python3 python3-pip || \
             fail "Failed to install Python"
-        elif [[ -f /etc/redhat-release ]]; then
+        elif [ -f /etc/redhat-release ]; then
             sudo yum install -y python3 python3-pip || \
             fail "Failed to install Python"
-        elif [[ "$OSTYPE" == "darwin"* ]]; then
+        elif [ "$(uname)" = "Darwin" ]; then
             if ! command -v brew >/dev/null 2>&1; then
                 fail "Homebrew required. Install from https://brew.sh"
             fi
             brew install python || fail "Failed to install Python"
         else
-            fail "Unsupported OS: $OSTYPE"
+            fail "Unsupported OS"
         fi
     fi
 }
 
 # Download file with validation
 download_file() {
-    local relative_path=$1
-    local dest_path=$2
-    local url="${RAW_URL}/${relative_path}"
+    relative_path=$1
+    dest_path=$2
+    url="${RAW_URL}/${relative_path}"
     
-    echo -e "${YELLOW}Downloading ${relative_path}...${NC}"
+    echo "${YELLOW}Downloading ${relative_path}...${NC}"
     check_url "${url}"
     
     mkdir -p "$(dirname "${dest_path}")" || fail "Cannot create directory"
@@ -104,26 +110,20 @@ download_file() {
         fail "Failed to download ${relative_path}"
     fi
     
-    if [[ ! -s "${dest_path}" ]]; then
+    if [ ! -s "${dest_path}" ]; then
         fail "Downloaded file is empty: ${relative_path}"
     fi
     
-    echo -e "${GREEN}✓ Downloaded ${relative_path}${NC}"
+    echo "${GREEN}✓ Downloaded ${relative_path}${NC}"
 }
 
 # Install FixErr
 install_fixerr() {
-    echo -e "${YELLOW}Installing FixErr...${NC}"
+    echo "${YELLOW}Installing FixErr...${NC}"
     
     # Download files
-    declare -A files=(
-        ["bin/fixerr"]="${TMP_DIR}/bin/fixerr"
-        ["src/llm/analyzer.py"]="${TMP_DIR}/src/llm/analyzer.py"
-    )
-    
-    for relative_path in "${!files[@]}"; do
-        download_file "${relative_path}" "${files[$relative_path]}"
-    done
+    download_file "bin/fixerr" "${TMP_DIR}/bin/fixerr"
+    download_file "src/llm/analyzer.py" "${TMP_DIR}/src/llm/analyzer.py"
     
     # Set executable permissions
     chmod +x "${TMP_DIR}/bin/fixerr" || fail "Cannot set executable permissions"
@@ -135,24 +135,24 @@ install_fixerr() {
     
     # Verify installation
     if ! command -v fixerr >/dev/null 2>&1; then
-        echo -e "${YELLOW}Warning: fixerr command not found in PATH${NC}"
+        echo "${YELLOW}Warning: fixerr command not found in PATH${NC}"
     fi
 }
 
 main() {
-    echo -e "\n${GREEN}Starting FixErr installation...${NC}"
+    echo "\n${GREEN}Starting FixErr installation...${NC}"
     
     check_requirements
     install_ollama
     install_python
     install_fixerr
     
-    echo -e "\n${GREEN}Installation complete!${NC}"
-    echo -e "Try running: ${GREEN}fixerr <your_script>${NC}"
+    echo "\n${GREEN}Installation complete!${NC}"
+    echo "Try running: ${GREEN}fixerr <your_script>${NC}"
     
     if ! command -v fixerr >/dev/null 2>&1; then
-        echo -e "\n${YELLOW}Note: You may need to add /usr/local/bin to your PATH:${NC}"
-        echo -e "export PATH=\"/usr/local/bin:\$PATH\""
+        echo "\n${YELLOW}Note: You may need to add /usr/local/bin to your PATH:${NC}"
+        echo "export PATH=\"/usr/local/bin:\$PATH\""
     fi
 }
 
