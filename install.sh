@@ -9,7 +9,7 @@ set -e  # Exit immediately if any command fails
 # ----------------------------
 # CONFIGURATION
 # ----------------------------
-REPO_OWNER="EDJINEDJA"            # GitHub username or organization
+REPO_OWNER="oblo"            # GitHub username or organization
 REPO_NAME="fixerr"           # Repository name
 BRANCH="main"                # Default branch to use
 INSTALL_DIR="/usr/local/bin" # Installation directory for main executable
