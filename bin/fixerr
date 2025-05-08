@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# ----------------------------
+# FixErr - Smart Error Analyzer
+# ----------------------------
+
 # Validate input
 if [ "$#" -ne 1 ]; then
     echo "Usage: fixerr <file>"
@@ -26,7 +30,7 @@ OUTPUT=$($EXECUTOR "$FILE" 2>&1)
 RETURN_CODE=$?
 
 if [ $RETURN_CODE -eq 0 ]; then
-    echo "✅ Code executed successfully!"
+    echo "$OUTPUT"
     exit 0
 else
     echo "🔍 Error detected, analyzing..."
