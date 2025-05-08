@@ -1,11 +1,11 @@
 <p align="center">
-    <a href="https://github.com/EDJINEDJA//databaseTrading/blob/main/LICENSE" alt="Licence">
+    <a href="https://github.com/EDJINEDJA//fixerr/blob/main/LICENSE" alt="Licence">
         <img src="https://img.shields.io/badge/license-MIT-yellow.svg" />
     </a>
-    <a href="https://github.com/EDJINEDJA//databaseTrading/commits/main" alt="Commits">
-        <img src="https://img.shields.io/github/last-commit/EDJINEDJA/databaseTrading/main" />
+    <a href="https://github.com/EDJINEDJA//fixerr/commits/main" alt="Commits">
+        <img src="https://img.shields.io/github/last-commit/EDJINEDJA/fixerr/main" />
     </a>
-    <a href="https://github.com/EDJINEDJA/databaseTrading" alt="Activity">
+    <a href="https://github.com/EDJINEDJA/fixerr" alt="Activity">
         <img src="https://img.shields.io/badge/contributions-welcome-orange.svg" />
     </a>
     <a href="http://matthaythornthwaite.pythonanywhere.com/" alt="Web Status">
@@ -23,12 +23,12 @@ Automatically detect and fix errors in your code with a local AI model. Just run
 #### macOS & Linux
 
 ```bash
-$ curl -fsSL https://yourdomain.com/install-fixerr.sh | sh
+$ curl -fsSL https://raw.githubusercontent.com/oblo/fixerr/main/install.sh | sh
 ```
 #### Windows (WSL2 Recommended)
 
 ```bash
-$ curl -fsSL https://yourdomain.com/install-fixerr.sh | sh
+$ curl -fsSL https://raw.githubusercontent.com/oblo/fixerr/main/install.sh | sh
 ```
 
 ## How It Works
