@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Validate input
+if [ "$#" -ne 1 ]; then
+    echo "Usage: fixerr <file>"
+    exit 1
+fi
+
+FILE=$1
+EXTENSION="${FILE##*.}"
+
+# Detect language and executor
+case "$EXTENSION" in
+    "py") EXECUTOR="python" ;;
+    "js") EXECUTOR="node" ;;
+    "rb") EXECUTOR="ruby" ;;
+    "go") EXECUTOR="go run" ;;
+    *)
+        echo "Unsupported file extension: $EXTENSION"
+        exit 1
+        ;;
+esac
+
+# Execute code and capture output
+OUTPUT=$($EXECUTOR "$FILE" 2>&1)
+RETURN_CODE=$?
+
+if [ $RETURN_CODE -eq 0 ]; then
+    echo "✅ Code executed successfully!"
+    exit 0
+else
+    echo "🔍 Error detected, analyzing..."
+    
+    # Get source code
+    CODE=$(cat "$FILE")
+    
+    # Call Python analyzer
+    ANALYSIS=$(python3 -c "
+from src.llm.analyzer import analyze_error
+result = analyze_error('$EXTENSION', '''$OUTPUT''', '''$CODE''')
+print(result)
+")
+    
+    echo -e "\n💡 Suggested fixes:"
+    echo "$ANALYSIS"
+    exit $RETURN_CODE
+fi
