@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Configuration
-REPO_URL="https://github.com/oblo/fixerr"
+REPO_URL="https://github.com/EDJINEDJA/fixerr"
 TMP_DIR=$(mktemp -d)
 INSTALL_DIR="/usr/local/bin"
 LIB_DIR="/usr/local/lib/fixerr"
