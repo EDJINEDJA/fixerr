@@ -30,17 +30,20 @@ if [ $RETURN_CODE -eq 0 ]; then
     exit 0
 else
     echo "🔍 Error detected, analyzing..."
-    
+
     # Get source code
     CODE=$(cat "$FILE")
-    
+
+    # Set PYTHONPATH so Python can find src.llm.analyzer
+    export PYTHONPATH="/usr/local/lib/fixerr:$PYTHONPATH"
+
     # Call Python analyzer
     ANALYSIS=$(python3 -c "
-from src.llm.analyzer import analyze_error
-result = analyze_error('$EXTENSION', '''$OUTPUT''', '''$CODE''')
-print(result)
-")
-    
+    from src.llm.analyzer import analyze_error
+    result = analyze_error('$EXTENSION', '''$OUTPUT''', '''$CODE''')
+    print(result)
+    ")
+
     echo -e "\n💡 Suggested fixes:"
     echo "$ANALYSIS"
     exit $RETURN_CODE

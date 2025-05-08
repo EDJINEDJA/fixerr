@@ -1,7 +1,7 @@
 import subprocess
 from typing import Optional
 
-def analyze_error(language: str, error: str, code: str, model: str = "llama3") -> str:
+def analyze_error(language: str, error: str, code: str, model: str = "phi") -> str:
     """
     Analyze code errors using local LLM
     
