@@ -2,7 +2,7 @@
 set -e  # Exit immediately if any command fails
 
 # Configuration
-REPO_OWNER="OBLO"
+REPO_OWNER="EDJINEDJA"
 REPO_NAME="fixerr"
 BRANCH="main"
 RAW_URL="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}"
