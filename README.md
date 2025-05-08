@@ -51,7 +51,11 @@ $ fixerr my_script.py
 
 ## Feedback & Contributions
 
-Found a bug? Want a new feature? Open an issue or submit a PR!
+Found a bug?
+
+Want a new feature?
+ 
+Open an issue or submit a PR!
 
 🌟 Star the project on GitHub! → [https://github.com/EDJINEDJA/fixerr](https://github.com/EDJINEDJA/fixerr)
 
