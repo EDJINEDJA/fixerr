@@ -1,7 +1,6 @@
 #!/bin/sh
-# FixErr Installation Script
-# POSIX-compliant installer compatible with all standard Unix shells
-# Provides robust error handling and clear user feedback
+# FixErr Installation Script - Optimized Version
+# POSIX-compliant installer with enhanced error handling
 # Usage: curl -fsSL https://raw.githubusercontent.com/oblo/fixerr/main/install.sh | sh
 
 set -e  # Exit immediately if any command fails
@@ -9,42 +8,42 @@ set -e  # Exit immediately if any command fails
 # ----------------------------
 # CONFIGURATION
 # ----------------------------
-REPO_OWNER="EDJINEDJA"            # GitHub username or organization
+REPO_OWNER="EDJINEDJA"            # GitHub username/organization
 REPO_NAME="fixerr"           # Repository name
-BRANCH="main"                # Default branch to use
-INSTALL_DIR="/usr/local/bin" # Installation directory for main executable
-LIB_DIR="/usr/local/lib/fixerr" # Installation directory for libraries
+BRANCH="main"                # Default branch
+INSTALL_DIR="/usr/local/bin" # Main executable install path
+LIB_DIR="/usr/local/lib/fixerr" # Library install path
 
 # ----------------------------
 # INITIALIZATION
 # ----------------------------
 
-# Create secure temporary directory (works on Linux/macOS/BSD)
-TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'fixerr-install') || {
+# Create secure temporary directory with improved compatibility
+TMP_DIR=$( (mktemp -d 2>/dev/null || mktemp -d -t 'fixerr') ) || {
     echo "ERROR: Failed to create temporary directory" >&2
     exit 1
 }
 
-# Cleanup function to remove temp files
+# Enhanced cleanup function
 cleanup() {
-    rm -rf "$TMP_DIR" 2>/dev/null || echo "WARNING: Failed to clean up temp directory" >&2
+    if [ -d "$TMP_DIR" ]; then
+        rm -rf "$TMP_DIR" || echo "WARNING: Could not remove temp directory" >&2
+    fi
 }
-trap cleanup EXIT INT TERM  # Ensure cleanup runs on exit
+trap cleanup EXIT INT TERM HUP
 
 # ----------------------------
 # ERROR HANDLING
 # ----------------------------
 
-# Unified error reporting function
 fail() {
     echo "ERROR: $1" >&2
     echo "TROUBLESHOOTING:" >&2
-    echo "1. Verify repository exists: https://github.com/$REPO_OWNER/$REPO_NAME" >&2
-    echo "2. Check files exist in $BRANCH branch:" >&2
-    echo "   - bin/fixerr (main executable)" >&2
-    echo "   - src/llm/analyzer.py (LLM analyzer)" >&2
-    echo "3. Ensure repository is public" >&2
-    echo "4. Check network connectivity" >&2
+    echo "1. Verify files exist in repository:" >&2
+    echo "   - bin/fixerr (executable)" >&2
+    echo "   - src/llm/analyzer.py" >&2
+    echo "2. Check repository visibility: https://github.com/$REPO_OWNER/$REPO_NAME" >&2
+    echo "3. Ensure branch '$BRANCH' exists" >&2
     exit 1
 }
 
@@ -53,22 +52,23 @@ fail() {
 # ----------------------------
 
 verify_dependencies() {
-    # Check for curl
+    # Check for curl with better error message
     if ! command -v curl >/dev/null 2>&1; then
-        fail "curl is required but not found. Install with:
-        Linux: sudo apt-get install curl
-        macOS: brew install curl"
+        echo "curl is required but not found." >&2
+        echo "Install using:" >&2
+        echo "  Ubuntu/Debian: sudo apt-get install curl" >&2
+        echo "  RHEL/CentOS: sudo yum install curl" >&2
+        echo "  macOS: brew install curl" >&2
+        exit 1
     fi
 
     # Check for git
     if ! command -v git >/dev/null 2>&1; then
-        fail "git is required but not found. Install with:
-        Linux: sudo apt-get install git
-        macOS: brew install git"
+        fail "git is required but not found"
     fi
 
     # Verify sudo access if not root
-    if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null 2>&1; then
+    if [ "$(id -u)" -ne 0 ] && ! sudo -v >/dev/null 2>&1; then
         fail "sudo access is required for installation"
     fi
 }
@@ -78,14 +78,13 @@ verify_dependencies() {
 # ----------------------------
 
 clone_repository() {
-    echo "Cloning FixErr repository from $BRANCH branch..."
-    if ! git clone -b "$BRANCH" --depth 1 \
+    echo "Cloning FixErr repository..."
+    if ! git clone -b "$BRANCH" --depth 1 --single-branch \
         "https://github.com/$REPO_OWNER/$REPO_NAME.git" "$TMP_DIR" 2>/dev/null; then
-        fail "Failed to clone repository. Possible causes:
-        - Repository doesn't exist
+        fail "Failed to clone repository. Common issues:
+        - Repository doesn't exist or is private
         - Branch '$BRANCH' doesn't exist
-        - Network issues
-        - Repository is private"
+        - Network connectivity problems"
     fi
 }
 
@@ -94,20 +93,25 @@ clone_repository() {
 # ----------------------------
 
 verify_files() {
-    echo "Verifying required files..."
+    echo "Verifying installation files..."
     
-    # Check main executable exists and is executable
+    # Check main executable
     if [ ! -f "$TMP_DIR/bin/fixerr" ]; then
-        fail "Missing main executable: bin/fixerr"
+        echo "Expected file path: $TMP_DIR/bin/fixerr" >&2
+        fail "Main executable not found in repository"
     fi
     
+    # Verify executable permissions
     if [ ! -x "$TMP_DIR/bin/fixerr" ]; then
-        fail "Main executable is not executable. Run: chmod +x bin/fixerr"
+        if ! chmod +x "$TMP_DIR/bin/fixerr"; then
+            fail "Cannot set executable permissions on bin/fixerr"
+        fi
     fi
 
-    # Check LLM analyzer exists
+    # Check analyzer file
     if [ ! -f "$TMP_DIR/src/llm/analyzer.py" ]; then
-        fail "Missing LLM analyzer: src/llm/analyzer.py"
+        echo "Expected file path: $TMP_DIR/src/llm/analyzer.py" >&2
+        fail "LLM analyzer not found in repository"
     fi
 }
 
@@ -116,31 +120,33 @@ verify_files() {
 # ----------------------------
 
 perform_installation() {
-    echo "Installing FixErr system-wide..."
+    echo "Installing FixErr..."
     
-    # Create installation directories
-    if ! sudo mkdir -p "$INSTALL_DIR" "$LIB_DIR"; then
-        fail "Failed to create installation directories"
-    fi
+    # Create directories with improved error handling
+    for dir in "$INSTALL_DIR" "$LIB_DIR"; do
+        if ! sudo mkdir -p "$dir"; then
+            fail "Failed to create directory: $dir"
+        fi
+    done
     
     # Install main executable
-    if ! sudo install -m 755 "$TMP_DIR/bin/fixerr" "$INSTALL_DIR/"; then
+    if ! sudo install -v -m 755 "$TMP_DIR/bin/fixerr" "$INSTALL_DIR/"; then
         fail "Failed to install main executable"
     fi
     
-    # Install library files
-    if ! sudo cp -r "$TMP_DIR/src" "$LIB_DIR/"; then
+    # Install library files with verbose output
+    if ! sudo cp -vr "$TMP_DIR/src" "$LIB_DIR/"; then
         fail "Failed to install library files"
     fi
     
-    # Set permissions for library files (644 = rw-r--r--)
+    # Set permissions for library files
     if ! sudo find "$LIB_DIR" -type f -exec chmod 644 {} \; 2>/dev/null; then
         echo "WARNING: Could not set library file permissions" >&2
     fi
 }
 
 # ----------------------------
-# POST-INSTALLATION VERIFICATION
+# POST-INSTALLATION
 # ----------------------------
 
 verify_installation() {
@@ -148,21 +154,21 @@ verify_installation() {
     
     if command -v fixerr >/dev/null 2>&1; then
         echo "SUCCESS: FixErr installed successfully!"
-        echo "Usage: fixerr <your_script>"
+        echo "Try it with: fixerr <your_script>"
     else
-        echo "WARNING: Installation completed but 'fixerr' not found in PATH"
-        echo "You may need to add /usr/local/bin to your PATH:"
-        echo "  export PATH=\"/usr/local/bin:\$PATH\""
-        echo "Or restart your terminal session"
+        echo "WARNING: Installation completed but 'fixerr' not found in PATH" >&2
+        echo "Add to your PATH:" >&2
+        echo "  echo 'export PATH=\"/usr/local/bin:\$PATH\"' >> ~/.bashrc" >&2
+        echo "  source ~/.bashrc" >&2
     fi
 }
 
 # ----------------------------
-# MAIN EXECUTION FLOW
+# MAIN EXECUTION
 # ----------------------------
 
 main() {
-    echo "Starting FixErr installation process..."
+    echo "Starting FixErr installation..."
     
     verify_dependencies
     clone_repository
@@ -170,7 +176,7 @@ main() {
     perform_installation
     verify_installation
     
-    echo "Installation process completed."
+    echo "Installation process completed successfully"
 }
 
 main
