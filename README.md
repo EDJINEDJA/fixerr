@@ -23,12 +23,12 @@ Automatically detect and fix errors in your code with a local AI model. Just run
 #### macOS & Linux
 
 ```bash
-$ curl -fsSL https://raw.githubusercontent.com/oblo/fixerr/main/install.sh | sh
+ curl -fsSL https://raw.githubusercontent.com/EDJINEDJA/fixerr/main/install.sh | sh
 ```
 #### Windows (WSL2 Recommended)
 
 ```bash
-$ curl -fsSL https://raw.githubusercontent.com/oblo/fixerr/main/install.sh | sh
+  curl -fsSL https://raw.githubusercontent.com/EDJINEDJA/fixerr/main/install.sh | sh
 ```
 
 ## How It Works
@@ -36,7 +36,7 @@ $ curl -fsSL https://raw.githubusercontent.com/oblo/fixerr/main/install.sh | sh
 - Run your script with fixerr instead of the normal command:
 
 ```bash
-$ fixerr my_script.py
+ fixerr my_script.py
 ```
 
 - If an error occurs, FixErr analyzes it locally using an LLM (like Llama 3 or CodeLlama).
@@ -62,7 +62,7 @@ Open an issue or submit a PR!
 ## Example
 
 ```bash
-$ fixerr my_script.py
+ fixerr my_script.py
 ```
 Output:
 
