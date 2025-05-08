@@ -1,151 +1,172 @@
 #!/bin/sh
 # FixErr Installation Script
-# POSIX-compliant installer compatible with all standard Unix shells
+# POSIX-compliant installer that works with any standard Unix shell
 # Usage: curl -fsSL https://raw.githubusercontent.com/oblo/fixerr/main/install.sh | sh
 
 set -e  # Exit immediately if any command fails
 
 # ----------------------------
-# CONFIGURATION SECTION
+# CONFIGURATION (MODIFY THESE IF NEEDED)
 # ----------------------------
-
-# Repository information - CHANGE THESE if using a different repo
-REPO_OWNER="EDJINEDJA"              # GitHub username or organization
-REPO_NAME="fixerr"             # Repository name
-BRANCH="main"                  # Branch containing the files
-
-# Installation paths
-INSTALL_DIR="/usr/local/bin"   # Where to install the main executable
+REPO_OWNER="EDJINEDJA"           # GitHub username or organization name
+REPO_NAME="fixerr"          # Repository name
+BRANCH="main"               # Branch containing the installation files
+INSTALL_DIR="/usr/local/bin" # Where to install the main executable
 LIB_DIR="/usr/local/lib/fixerr" # Where to install library files
 
 # ----------------------------
-# INITIALIZATION SECTION
+# INITIALIZATION
 # ----------------------------
 
-# Create temporary directory (works on both Linux and BSD systems)
-TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'fixerr') || {
+# Create secure temporary directory (works on both Linux and BSD)
+TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'fixerr-install') || {
     echo "ERROR: Failed to create temporary directory" >&2
     exit 1
 }
 
 # Cleanup function to remove temp files
 cleanup() {
-    rm -rf "$TMP_DIR" 2>/dev/null || true  # Silently fail if delete fails
+    rm -rf "$TMP_DIR" 2>/dev/null || echo "WARNING: Failed to clean up temp directory" >&2
 }
-trap cleanup EXIT INT TERM  # Ensure cleanup runs on script exit
+trap cleanup EXIT INT TERM  # Ensure cleanup runs on exit
 
 # ----------------------------
-# ERROR HANDLING SECTION
+# ERROR HANDLING
 # ----------------------------
 
-# Unified error handling function
+# Unified error reporting function
 fail() {
     echo "ERROR: $1" >&2
-    echo "Installation failed. Please check:" >&2
-    echo "1. The repository exists at https://github.com/$REPO_OWNER/$REPO_NAME" >&2
-    echo "2. The files exist in the $BRANCH branch" >&2
+    echo "TROUBLESHOOTING:" >&2
+    echo "1. Verify the repository exists: https://github.com/$REPO_OWNER/$REPO_NAME" >&2
+    echo "2. Check the files exist in the $BRANCH branch:" >&2
+    echo "   - bin/fixerr" >&2
+    echo "   - src/llm/analyzer.py" >&2
+    echo "3. Ensure the repository is public" >&2
     exit 1
 }
 
 # ----------------------------
-# DEPENDENCY CHECK SECTION
+# DEPENDENCY CHECKS
 # ----------------------------
 
-# Verify system has required dependencies
-check_deps() {
+# Verify system has required tools installed
+check_dependencies() {
     # Check for curl (required for downloads)
-    if ! command -v curl >/dev/null; then
-        fail "curl is required but not installed. Install with:
+    if ! command -v curl >/dev/null 2>&1; then
+        fail "curl is required but not found. Please install curl first:
         Linux: sudo apt-get install curl
-        MacOS: brew install curl"
+        macOS: brew install curl"
     fi
 
-    # Check for sudo (unless already root)
-    if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null; then
+    # Check for git (we'll use it for reliable cloning)
+    if ! command -v git >/dev/null 2>&1; then
+        fail "git is required but not found. Please install git first"
+    fi
+
+    # Check for sudo unless running as root
+    if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null 2>&1; then
         fail "sudo is required for installation"
     fi
 }
 
 # ----------------------------
-# DOWNLOAD SECTION
+# FILE DOWNLOAD
 # ----------------------------
 
-# Secure file download with verification
-download_verified() {
-    file_path="$1"  # Relative path in repository
-    dest_path="$2"  # Full destination path
-    url="https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAME/$BRANCH/$file_path"
-    
-    echo "Downloading $file_path..."
-    
-    # First verify the URL exists
-    if ! curl --head --silent --fail "$url" >/dev/null; then
-        fail "File not found at: $url
-        Please verify:
-        1. The repository is public
-        2. The file exists in the $BRANCH branch
-        3. The path is correct"
+# Clone repository securely instead of using raw downloads
+clone_repository() {
+    echo "Cloning FixErr repository..."
+    if ! git clone -b "$BRANCH" --depth 1 \
+        "https://github.com/$REPO_OWNER/$REPO_NAME.git" "$TMP_DIR" 2>/dev/null; then
+        fail "Failed to clone repository. Check:
+        - Repository exists: https://github.com/$REPO_OWNER/$REPO_NAME
+        - Branch '$BRANCH' exists
+        - Network connectivity"
     fi
+}
+
+# Verify required files exist
+verify_files() {
+    echo "Verifying installation files..."
     
-    # Download with 3 retry attempts
-    for i in 1 2 3; do
-        if curl -fsSL "$url" -o "$dest_path"; then
-            # Verify file was downloaded and has content
-            if [ -s "$dest_path" ]; then
-                chmod +x "$dest_path" 2>/dev/null || true  # Try to make executable if appropriate
-                return 0  # Success
+    # List of required files with relative paths
+    REQUIRED_FILES="bin/fixerr src/llm/analyzer.py"
+    
+    for file in $REQUIRED_FILES; do
+        if [ ! -f "$TMP_DIR/$file" ]; then
+            fail "Missing required file: $file
+            Expected path in repository: $file"
+        fi
+        
+        # Special check for main executable
+        if [ "$file" = "bin/fixerr" ]; then
+            if [ ! -x "$TMP_DIR/$file" ]; then
+                fail "Main executable is not executable: $file
+                Run: chmod +x $file"
             fi
         fi
-        sleep 1  # Wait before retry
     done
-    
-    fail "Failed to download $file_path after 3 attempts"
 }
 
 # ----------------------------
-# INSTALLATION SECTION
+# INSTALLATION
 # ----------------------------
 
-# Main installation function
-install() {
-    echo "Starting FixErr installation..."
-    
-    # Verify system dependencies
-    check_deps
-    
-    # Download required files
-    download_verified "bin/fixerr" "$TMP_DIR/fixerr"          # Main executable
-    download_verified "src/llm/analyzer.py" "$TMP_DIR/analyzer.py"  # LLM analyzer
+perform_installation() {
+    echo "Installing FixErr..."
     
     # Create installation directories
-    if ! sudo mkdir -p "$LIB_DIR"; then
-        fail "Cannot create library directory $LIB_DIR"
+    if ! sudo mkdir -p "$INSTALL_DIR" "$LIB_DIR"; then
+        fail "Failed to create installation directories"
     fi
     
     # Install main executable
-    if ! sudo install -m 755 "$TMP_DIR/fixerr" "$INSTALL_DIR/fixerr"; then
-        fail "Cannot install main executable"
+    if ! sudo install -m 755 "$TMP_DIR/bin/fixerr" "$INSTALL_DIR/"; then
+        fail "Failed to install main executable"
     fi
     
-    # Install analyzer library
-    if ! sudo install -m 644 "$TMP_DIR/analyzer.py" "$LIB_DIR/analyzer.py"; then
-        fail "Cannot install analyzer"
+    # Install library files
+    if ! sudo cp -r "$TMP_DIR/src" "$LIB_DIR/"; then
+        fail "Failed to install library files"
     fi
     
-    # Verify installation succeeded
-    if command -v fixerr >/dev/null; then
-        echo "SUCCESS: FixErr installed successfully!"
-        echo "Try it with: fixerr <your_script>"
-    else
-        echo "WARNING: Installation completed but 'fixerr' not found in PATH"
-        echo "You may need to add /usr/local/bin to your PATH:"
-        echo "export PATH=\"$INSTALL_DIR:\$PATH\""
+    # Set correct permissions for library files
+    if ! sudo find "$LIB_DIR" -type f -exec chmod 644 {} \;; then
+        echo "WARNING: Could not set library file permissions" >&2
     fi
 }
 
 # ----------------------------
-# EXECUTION SECTION
+# POST-INSTALLATION VERIFICATION
 # ----------------------------
 
-# Run the installation process
-install
+verify_installation() {
+    echo "Verifying installation..."
+    
+    # Check main executable is in PATH
+    if ! command -v fixerr >/dev/null 2>&1; then
+        echo "WARNING: 'fixerr' command not found in PATH" >&2
+        echo "You may need to add /usr/local/bin to your PATH:" >&2
+        echo "  export PATH=\"/usr/local/bin:\$PATH\"" >&2
+    else
+        echo "SUCCESS: FixErr installed successfully!"
+        echo "Try it with: fixerr <your_script>"
+    fi
+}
+
+# ----------------------------
+# MAIN INSTALLATION FLOW
+# ----------------------------
+
+main() {
+    echo "Starting FixErr installation..."
+    
+    check_dependencies
+    clone_repository
+    verify_files
+    perform_installation
+    verify_installation
+}
+
+main
