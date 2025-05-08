@@ -31,18 +31,34 @@ if [ $RETURN_CODE -eq 0 ]; then
 else
     echo "🔍 Error detected, analyzing..."
 
-    # Get source code
-    CODE=$(cat "$FILE")
+    # Create temporary files to safely pass multiline content
+    TMP_OUTPUT=$(mktemp)
+    TMP_CODE=$(mktemp)
 
-    # Set PYTHONPATH so Python can find src.llm.analyzer
-    export PYTHONPATH="/usr/local/lib/fixerr:$PYTHONPATH"
+    echo "$OUTPUT" > "$TMP_OUTPUT"
+    cat "$FILE" > "$TMP_CODE"
 
-    # Call Python analyzer
-    ANALYSIS=$(python3 -c "
-    from src.llm.analyzer import analyze_error
-    result = analyze_error('$EXTENSION', '''$OUTPUT''', '''$CODE''')
-    print(result)
-    ")
+    # Call Python analyzer via heredoc
+    ANALYSIS=$(python3 <<EOF
+import sys
+sys.path.insert(0, "/usr/local/lib/fixerr")
+
+from src.llm.analyzer import analyze_error
+
+with open("$TMP_OUTPUT", "r") as f:
+    output = f.read()
+
+with open("$TMP_CODE", "r") as f:
+    code = f.read()
+
+ext = "$EXTENSION"
+result = analyze_error(ext, output, code)
+print(result)
+EOF
+)
+
+    # Clean up temp files
+    rm -f "$TMP_OUTPUT" "$TMP_CODE"
 
     echo -e "\n💡 Suggested fixes:"
     echo "$ANALYSIS"
