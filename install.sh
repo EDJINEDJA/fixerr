@@ -1,7 +1,7 @@
 #!/bin/sh
 # FixErr Installation Script - Optimized Version
 # POSIX-compliant installer with enhanced error handling
-# Usage: curl -fsSL https://raw.githubusercontent.com/oblo/fixerr/main/install.sh | sh
+# Usage: curl -fsSL https://raw.githubusercontent.com/EDJINEDJA/fixerr/main/install.sh | sh
 
 set -e  # Exit immediately if any command fails
 
