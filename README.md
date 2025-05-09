@@ -16,7 +16,9 @@
 
 ## FixErr - AI-Powered Code Error Fixer
 
-Automatically detect and fix errors in your code with a local AI model. Just run your script with fixerr, and get instant explanations and solutions when something breaks.
+Automatically detect errors in your code and suggest solutions to correct them thanks to a local artificial intelligence(AI) model. 
+
+Simply run your script with fixerr, and get instant explanations and solutions when something goes wrong.
 
 ## Download & Install
 
@@ -31,7 +33,7 @@ Automatically detect and fix errors in your code with a local AI model. Just run
   curl -fsSL https://raw.githubusercontent.com/EDJINEDJA/fixerr/main/install.sh | sh
 ```
 
-## How It Works
+## How it works
 
 - Run your script with fixerr instead of the normal command:
 
@@ -39,13 +41,13 @@ Automatically detect and fix errors in your code with a local AI model. Just run
  fixerr my_script.py
 ```
 
-- If an error occurs, FixErr analyzes it locally using an LLM (like Llama 3 or CodeLlama).
+- If an error occurs, FixErr analyzes it locally using an LLM (like Phi, Llama 3 or CodeLlama).
 
-- Get clear explanations and fixes without sending your code to the cloud.
+- Get clear explanations and fixes without seeking solution on stack overflow or sending your code to the cloud.
 
 ## Dependencies
 
-- Ollama (installs automatically)
+- Ollama (installs automatically if missing)
 
 - Python (installs automatically if missing)
 
