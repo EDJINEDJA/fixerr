@@ -51,7 +51,7 @@ def analyze_error(language: str, error: str, code: str, model: str = "phi") -> s
             check=True,
             capture_output=True,
             text=True,
-            timeout=120  # 2 minute timeout
+            timeout=120
         )
         return result.stdout
     except subprocess.TimeoutExpired:

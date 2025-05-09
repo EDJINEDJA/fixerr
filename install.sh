@@ -8,11 +8,11 @@ set -e  # Exit immediately if any command fails
 # ----------------------------
 # CONFIGURATION
 # ----------------------------
-REPO_OWNER="EDJINEDJA"            # GitHub username/organization
-REPO_NAME="fixerr"           # Repository name
-BRANCH="main"                # Default branch
-INSTALL_DIR="/usr/local/bin" # Main executable install path
-LIB_DIR="/usr/local/lib/fixerr" # Library install path
+REPO_OWNER="EDJINEDJA"           
+REPO_NAME="fixerr"           
+BRANCH="main"                
+INSTALL_DIR="/usr/local/bin" 
+LIB_DIR="/usr/local/lib/fixerr"
 
 # ----------------------------
 # INITIALIZATION
