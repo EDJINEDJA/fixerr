@@ -78,4 +78,5 @@ fixerr broken_script.py
 
 🔧 Corrected Code:  
 if len(my_list) > 0:
+
     print(my_list[0])
