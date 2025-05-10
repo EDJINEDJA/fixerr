@@ -1,9 +1,9 @@
 #!/bin/sh
-# FixErr Installation Script - Optimized Version
-# POSIX-compliant installer with enhanced error handling
+# FixErr Installation Script
 # Usage: curl -fsSL https://raw.githubusercontent.com/EDJINEDJA/fixerr/main/install.sh | sh
 
-set -e  # Exit immediately if any command fails
+# Exit immediately if any command fails
+set -e
 
 # ----------------------------
 # CONFIGURATION
@@ -24,7 +24,7 @@ TMP_DIR=$( (mktemp -d 2>/dev/null || mktemp -d -t 'fixerr') ) || {
     exit 1
 }
 
-# Enhanced cleanup function
+# Cleanup function
 cleanup() {
     if [ -d "$TMP_DIR" ]; then
         rm -rf "$TMP_DIR" || echo "WARNING: Could not remove temp directory" >&2
